@@ -1,0 +1,7 @@
+import React, { useState } from "react";
+import api from "../api/axios";
+export default function AddProduct(){
+  const [name,setName]=useState(""); const [price,setPrice]=useState(""); const [description,setDescription]=useState(""); const [file,setFile]=useState(null);
+  const handleAdd = async (e)=>{ e.preventDefault(); try{ const form = new FormData(); form.append("name",name); form.append("price",price); form.append("description",description); if(file) form.append("image", file); await api.post("/produits/", form, { headers: {"Content-Type":"multipart/form-data"} }); alert("Produit ajouté"); setName(""); setPrice(""); setDescription(""); setFile(null);}catch(e){ console.error(e); alert("Erreur lors de l'ajout du produit."); } };
+  return (<div className="max-w-md mx-auto py-10"><h1 className="text-2xl font-bold mb-4">Ajouter un produit</h1><form onSubmit={handleAdd} className="space-y-4"><input value={name} onChange={e=>setName(e.target.value)} placeholder="Nom" className="border p-2 w-full rounded" required/><input value={price} onChange={e=>setPrice(e.target.value)} placeholder="Prix" type="number" className="border p-2 w-full rounded" required/><textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="Description" className="border p-2 w-full rounded"/><input type="file" accept="image/*" onChange={e=>setFile(e.target.files[0])}/><button className="bg-pink-600 text-white px-4 py-2 rounded">Ajouter</button></form></div>);
+}

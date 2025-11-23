@@ -1,0 +1,7 @@
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;}
+:root{
+  --brand-pink:#f7c6c7;
+  --brand-beige:#f8f1ec;
+  --brand-brown:#6b4a3a;
+}
+body{background:var(--brand-beige);color:#334155;}

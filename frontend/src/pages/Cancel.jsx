@@ -1,0 +1,1 @@
+export default function Cancel(){return <div className='max-w-4xl mx-auto py-10 text-center'><h1 className='text-3xl font-bold mb-4'>Paiement annulé</h1><p>Le paiement a été annulé.</p></div>;}
