@@ -1,10 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
+from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="KBS Store Backend")
+from routes.auth import router as auth_router
+from routes.products import router as products_router
+from routes.orders import router as orders_router
+from routes.payments import router as payments_router
+from routes.admin import router as admin_router  # <- ajouté
 
-origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+app = FastAPI(
+    title="KBS Store API",
+    description="API E-commerce pour KBS Store",
+    version="1.0.0"
+)
+
+# -------------------------
+# CORS (production + local)
+# -------------------------
+origins = [
+    "http://localhost:5173",
+    "https://kbsstore.vercel.app",  # frontend production
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -13,15 +30,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# include routers
-from routes.auth import router as auth_router
-from routes.produits import router as produits_router
-from routes.paiements import router as paiements_router
+# -------------------------
+# Routes
+# -------------------------
+app.include_router(auth_router, prefix="/auth", tags=["Auth"])
+app.include_router(products_router, prefix="/products", tags=["Products"])
+app.include_router(orders_router, prefix="/orders", tags=["Orders"])
+app.include_router(payments_router, prefix="/payments", tags=["Payments"])
+app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
-app.include_router(auth_router)
-app.include_router(produits_router)
-app.include_router(paiements_router)
+# -------------------------
+# Static uploads (images)
+# -------------------------
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 
 @app.get("/")
-def root():
-    return {"ok": True, "msg": "KBS Store backend running"}
+def home():
+    return {"message": "KBS Store API is running 🚀"}
+
+
+# Render nécessite un port spécifique, mais uvicorn le gère automatiquement
+# Commande de démarrage : uvicorn main:app --host 0.0.0.0 --port 10000

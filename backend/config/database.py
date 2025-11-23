@@ -1,13 +1,58 @@
-from motor.motor_asyncio import AsyncIOMotorClient
-from dotenv import load_dotenv
+from pymongo import MongoClient
+from bson import ObjectId
+from fastapi import HTTPException
 import os
 
-load_dotenv()
+# -----------------------------------------------------------------------------------------
+# MONGO CONNECTION
+# -----------------------------------------------------------------------------------------
 
-MONGO_URL = os.getenv("MONGO_URL")
+MONGO_URI = os.getenv("MONGO_URI")
 
-# Connexion MongoDB
-client = AsyncIOMotorClient(MONGO_URL)
+if not MONGO_URI:
+    raise Exception("❌ ERREUR : MONGO_URI non défini dans les variables d'environnement.")
 
-# IMPORTANT : choisir explicitement la base (sinon erreur)
-db = client["kbsstore"]
+client = MongoClient(MONGO_URI)
+db = client["kbsstore"]  # Nom de la base
+
+
+# -----------------------------------------------------------------------------------------
+# UTILITAIRES BSON → JSON
+# -----------------------------------------------------------------------------------------
+
+def serialize_id(id):
+    """Convert ObjectId en string."""
+    return str(id)
+
+
+def serialize_doc(doc):
+    """Convertir un document MongoDB en JSON compatible."""
+    if not doc:
+        return None
+
+    doc["_id"] = str(doc["_id"])
+
+    # Convertir les clés enfants
+    for key, value in doc.items():
+        if isinstance(value, ObjectId):
+            doc[key] = str(value)
+        if isinstance(value, list):
+            doc[key] = [serialize_doc(item) if isinstance(item, dict) else item for item in value]
+
+    return doc
+
+
+def serialize_list(docs):
+    """Convertir une liste de documents en JSON."""
+    return [serialize_doc(doc) for doc in docs]
+
+
+# -----------------------------------------------------------------------------------------
+# VERIFICATION OBJET
+# -----------------------------------------------------------------------------------------
+
+def validate_object_id(id: str):
+    """Vérifie si un ID est valide sinon lève une exception propre."""
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=400, detail="ID invalide.")
+    return ObjectId(id)
